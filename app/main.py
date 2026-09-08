@@ -210,190 +210,389 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DeployWatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a25;--border:#2a2a3a;--text:#e0e0e8;--muted:#666680;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e74c3c;--yellow:#f39c12;--blue:#3498db;--orange:#e67e22}
-body{font-family:'Inter',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-a{color:var(--accent2);text-decoration:none}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
-.topbar h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px}
-.topbar h1 .icon{font-size:24px}
-.topbar .meta{display:flex;gap:16px;align-items:center;color:var(--muted);font-size:13px}
-.topbar .dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.container{max-width:1400px;margin:0 auto;padding:24px 32px}
-.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;transition:transform .2s}
-.stat:hover{transform:translateY(-2px)}
-.stat .num{font-size:32px;font-weight:800;line-height:1}
-.stat .label{font-size:12px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:1px}
-.stat.green .num{color:var(--green)}
-.stat.red .num{color:var(--red)}
-.stat.blue .num{color:var(--blue)}
-.stat.accent .num{color:var(--accent2)}
-.stat.yellow .num{color:var(--yellow)}
-.section{margin-bottom:24px}
-.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.section-head h2{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
-.section-head .badge{background:var(--accent);color:#fff;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600}
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:12px 16px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border)}
-td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border);white-space:nowrap}
-tr:last-child td{border-bottom:none}
-tr:hover{background:var(--surface2)}
-.status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600}
-.status.running{background:rgba(0,184,148,.15);color:var(--green)}
-.status.pending{background:rgba(243,156,18,.15);color:var(--yellow)}
-.status.failed,.status.error{background:rgba(231,76,60,.15);color:var(--red)}
-.status.succeeded{background:rgba(0,184,148,.15);color:var(--green)}
-.status::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
-.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-.status-dot.ok{background:var(--green)}
-.status-dot.warn{background:var(--yellow)}
-.status-dot.err{background:var(--red)}
-.events{max-height:400px;overflow-y:auto}
-.event{display:flex;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;align-items:flex-start}
-.event:last-child{border-bottom:none}
-.event .type{font-weight:700;min-width:60px}
-.event .type.Warning{color:var(--yellow)}
-.event .type.Normal{color:var(--green)}
-.event .reason{color:var(--accent2);min-width:120px;font-weight:600;font-size:12px}
-.event .msg{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis}
-.event .age{color:var(--muted);min-width:40px;text-align:right}
-.logs-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
-.logs-modal.open{display:flex}
-.logs-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:900px;max-height:80vh;display:flex;flex-direction:column}
-.logs-box .head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.logs-box .head h3{font-size:15px}
-.logs-box .close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:4px 8px}
-.logs-box .close:hover{color:var(--text)}
-.logs-box pre{padding:20px;overflow:auto;flex:1;font-size:13px;line-height:1.6;color:#b8b8cc;font-family:'Fira Code',monospace;white-space:pre-wrap;word-break:break-all}
-.btn{background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;transition:background .2s}
-.btn:hover{background:var(--accent2)}
-.empty{text-align:center;padding:40px;color:var(--muted)}
-@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.container{padding:16px}}
+
+:root{
+  --void:#0a0c10;
+  --panel:#12151c;
+  --raised:#1a1e28;
+  --edge:#252a38;
+  --edge-focus:#3d4560;
+  --ink:#c8cde0;
+  --ink-muted:#6b7394;
+  --ink-ghost:#3d4260;
+  --led-green:#00e68a;
+  --led-red:#ff3d5a;
+  --led-amber:#ffaa2c;
+  --led-blue:#4d8dff;
+  --led-teal:#2dd4bf;
+  --font-sans:'Inter',-apple-system,system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono','Fira Code',monospace;
+}
+
+html{font-size:14px}
+body{font-family:var(--font-sans);background:var(--void);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ── grid lines (decorative, behind content) ── */
+body::before{content:'';position:fixed;inset:0;background:
+  repeating-linear-gradient(90deg,var(--edge) 0 1px,transparent 1px 120px),
+  repeating-linear-gradient(0deg,var(--edge) 0 1px,transparent 1px 120px);
+  opacity:.15;pointer-events:none;z-index:0}
+
+/* ── topbar ── */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:var(--panel);border-bottom:1px solid var(--edge);
+  padding:0 24px;height:48px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;
+}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.logo{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:-.02em;color:var(--ink)}
+.logo .watch{color:var(--led-teal)}
+.topbar-right{display:flex;align-items:center;gap:20px;color:var(--ink-muted);font-family:var(--font-mono);font-size:11px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--led-green);display:inline-block;box-shadow:0 0 6px var(--led-green)}
+.topbar-right .ns{color:var(--ink-ghost)}
+
+/* ── layout ── */
+.main{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:20px 24px 40px}
+
+/* ── stat readouts ── */
+.readouts{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+  background:var(--edge);border:1px solid var(--edge);margin-bottom:20px;
+}
+.readout{background:var(--panel);padding:16px 20px;display:flex;flex-direction:column;gap:4px}
+.readout-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-ghost)}
+.readout-value{font-family:var(--font-mono);font-size:28px;font-weight:700;line-height:1;letter-spacing:-.03em}
+.readout-value.green{color:var(--led-green)}
+.readout-value.red{color:var(--led-red)}
+.readout-value.blue{color:var(--led-blue)}
+.readout-value.teal{color:var(--led-teal)}
+.readout-value.amber{color:var(--led-amber)}
+.readout-sub{font-family:var(--font-mono);font-size:10px;color:var(--ink-ghost);margin-top:2px}
+
+/* ── sections ── */
+.section{margin-bottom:20px}
+.section-title{
+  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--ink-ghost);margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-title::after{content:'';flex:1;height:1px;background:var(--edge)}
+.section-title .count{
+  font-family:var(--font-mono);font-weight:700;font-size:12px;
+  color:var(--ink-muted);background:var(--raised);padding:1px 6px;border-radius:3px;
+}
+
+/* ── tables ── */
+.table-wrap{border:1px solid var(--edge);background:var(--panel);overflow-x:auto}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead{position:sticky;top:0;z-index:2}
+th{
+  text-align:left;padding:8px 12px;font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--ink-ghost);
+  background:var(--panel);border-bottom:1px solid var(--edge);
+  white-space:nowrap;
+}
+th.num,td.num{text-align:right}
+td{
+  padding:7px 12px;font-size:12px;border-bottom:1px solid rgba(37,42,56,.5);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:background .15s;
+}
+tr:hover td{background:var(--raised)}
+tr.row-ok td{border-left:2px solid var(--led-green)}
+tr.row-warn td{border-left:2px solid var(--led-amber)}
+tr.row-err td{border-left:2px solid var(--led-red)}
+.mono{font-family:var(--font-mono);font-size:11px;color:var(--ink-muted)}
+.name{font-family:var(--font-mono);font-weight:600;font-size:12px;color:var(--ink);max-width:280px;overflow:hidden;text-overflow:ellipsis}
+.image{font-family:var(--font-mono);font-size:11px;color:var(--ink-ghost);max-width:260px;overflow:hidden;text-overflow:ellipsis}
+
+/* ── status chips ── */
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600;
+  font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.04em;
+}
+.chip::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.chip.running{color:var(--led-green);background:rgba(0,230,138,.08)}
+.chip.pending{color:var(--led-amber);background:rgba(255,170,44,.08)}
+.chip.failed,.chip.error{color:var(--led-red);background:rgba(255,61,90,.08)}
+.chip.succeeded{color:var(--led-blue);background:rgba(77,141,255,.08)}
+.chip.ok{color:var(--led-green);background:rgba(0,230,138,.08)}
+.chip.no{color:var(--led-red);background:rgba(255,61,90,.08)}
+
+/* ── events ── */
+.events-wrap{border:1px solid var(--edge);background:var(--panel);max-height:360px;overflow-y:auto}
+.ev{
+  display:grid;grid-template-columns:60px 100px 1fr 40px;gap:8px;
+  padding:6px 12px;border-bottom:1px solid rgba(37,42,56,.4);
+  font-size:11px;align-items:baseline;
+}
+.ev:last-child{border-bottom:none}
+.ev:hover{background:var(--raised)}
+.ev-type{font-family:var(--font-mono);font-weight:700;font-size:10px}
+.ev-type.Warning{color:var(--led-amber)}
+.ev-type.Normal{color:var(--led-green)}
+.ev-type.Error{color:var(--led-red)}
+.ev-reason{font-family:var(--font-mono);font-weight:600;color:var(--led-teal);font-size:10px}
+.ev-msg{color:var(--ink-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev-age{font-family:var(--font-mono);color:var(--ink-ghost);text-align:right}
+
+/* ── logs modal ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(10,12,16,.85);
+  z-index:200;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--panel);border:1px solid var(--edge);width:920px;max-height:80vh;
+  display:flex;flex-direction:column;
+}
+.modal-head{
+  padding:12px 16px;border-bottom:1px solid var(--edge);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.modal-head h3{font-family:var(--font-mono);font-size:13px;font-weight:600}
+.modal-close{
+  background:none;border:1px solid var(--edge);color:var(--ink-muted);
+  cursor:pointer;font-size:16px;padding:2px 8px;line-height:1;
+  transition:color .15s,border-color .15s;
+}
+.modal-close:hover{color:var(--ink);border-color:var(--ink-muted)}
+.modal pre{
+  padding:16px;overflow:auto;flex:1;font-size:12px;line-height:1.7;
+  color:var(--ink-muted);font-family:var(--font-mono);
+  white-space:pre-wrap;word-break:break-all;
+}
+
+/* ── empty states ── */
+.empty{
+  padding:32px;text-align:center;color:var(--ink-ghost);
+  font-family:var(--font-mono);font-size:12px;
+}
+.empty::before{content:'--';display:block;font-size:20px;margin-bottom:8px;color:var(--edge-focus)}
+
+/* ── focus states ── */
+:focus-visible{outline:1px solid var(--led-blue);outline-offset:2px}
+
+/* ── transitions ── */
+@keyframes row-enter{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+tr.new-row td{animation:row-enter .2s ease-out}
+
+/* ── responsive ── */
+@media(max-width:1000px){
+  .readouts{grid-template-columns:repeat(3,1fr)}
+  .ev{grid-template-columns:50px 80px 1fr 36px}
+}
+@media(max-width:600px){
+  .readouts{grid-template-columns:repeat(2,1fr)}
+  .topbar-right{display:none}
+  .main{padding:12px}
+}
 </style>
 </head>
 <body>
+
 <div class="topbar">
-  <h1><span class="icon">&#x1F680;</span> DeployWatch</h1>
-  <div class="meta">
-    <span>Namespace: <strong id="ns">-</strong></span>
-    <span><span class="dot"></span> Live</span>
-    <span id="last-update">-</span>
+  <div class="topbar-left">
+    <div class="logo">deploy<span class="watch">watch</span></div>
   </div>
-</div>
-<div class="container">
-  <div class="stats">
-    <div class="stat green"><div class="num" id="s-running">0</div><div class="label">Running Pods</div></div>
-    <div class="stat red"><div class="num" id="s-failed">0</div><div class="label">Failed Pods</div></div>
-    <div class="stat blue"><div class="num" id="s-total">0</div><div class="label">Total Pods</div></div>
-    <div class="stat accent"><div class="num" id="s-deps">0</div><div class="label">Deployments</div></div>
-    <div class="stat yellow"><div class="num" id="s-svcs">0</div><div class="label">Services</div></div>
-  </div>
-
-  <div class="section">
-    <div class="section-head"><h2>&#x1F4E6; Pods <span class="badge" id="pod-count">0</span></h2></div>
-    <div class="table-wrap"><table><thead><tr><th>Name</th><th>Status</th><th>Ready</th><th>Restarts</th><th>Node</th><th>IP</th><th>Image</th><th>Age</th><th></th></tr></thead><tbody id="pods-body"></tbody></table></div>
-  </div>
-
-  <div class="section">
-    <div class="section-head"><h2>&#x1F3D7; Deployments <span class="badge" id="dep-count">0</span></h2></div>
-    <div class="table-wrap"><table><thead><tr><th>Name</th><th>Ready</th><th>Desired</th><th>Updated</th><th>Available</th><th>Strategy</th><th>Image</th><th>Age</th></tr></thead><tbody id="deps-body"></tbody></table></div>
-  </div>
-
-  <div class="section">
-    <div class="section-head"><h2>&#x1F310; Services <span class="badge" id="svc-count">0</span></h2></div>
-    <div class="table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Cluster IP</th><th>External IP</th><th>Ports</th><th>Age</th></tr></thead><tbody id="svcs-body"></tbody></table></div>
-  </div>
-
-  <div class="section">
-    <div class="section-head"><h2>&#x1F4CB; Recent Events <span class="badge" id="evt-count">0</span></h2></div>
-    <div class="table-wrap events" id="events-body"></div>
+  <div class="topbar-right">
+    <span class="ns" id="ns">--</span>
+    <span><span class="live-dot"></span> LIVE</span>
+    <span id="last-update">--:--:--</span>
   </div>
 </div>
 
-<div class="logs-modal" id="logs-modal">
-  <div class="logs-box">
-    <div class="head"><h3 id="logs-title">Pod Logs</h3><button class="close" onclick="closeLogs()">&times;</button></div>
-    <pre id="logs-content">Loading...</pre>
+<div class="main">
+  <!-- readouts -->
+  <div class="readouts">
+    <div class="readout"><span class="readout-label">Running</span><span class="readout-value green" id="s-running">0</span></div>
+    <div class="readout"><span class="readout-label">Failed</span><span class="readout-value red" id="s-failed">0</span></div>
+    <div class="readout"><span class="readout-label">Total Pods</span><span class="readout-value blue" id="s-total">0</span></div>
+    <div class="readout"><span class="readout-label">Deployments</span><span class="readout-value teal" id="s-deps">0</span></div>
+    <div class="readout"><span class="readout-label">Services</span><span class="readout-value" id="s-svcs" style="color:var(--ink-muted)">0</span></div>
+  </div>
+
+  <!-- pods -->
+  <div class="section">
+    <div class="section-title">Pods <span class="count" id="pod-count">0</span></div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th style="width:28%">Name</th>
+        <th style="width:9%">Status</th>
+        <th style="width:7%">Ready</th>
+        <th class="num" style="width:8%">Restarts</th>
+        <th style="width:14%">Node</th>
+        <th style="width:12%">IP</th>
+        <th style="width:16%">Image</th>
+        <th style="width:6%">Age</th>
+      </tr></thead>
+      <tbody id="pods-body"></tbody>
+    </table></div>
+  </div>
+
+  <!-- deployments -->
+  <div class="section">
+    <div class="section-title">Deployments <span class="count" id="dep-count">0</span></div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th style="width:22%">Name</th>
+        <th style="width:10%">Ready</th>
+        <th class="num" style="width:8%">Desired</th>
+        <th class="num" style="width:8%">Updated</th>
+        <th class="num" style="width:9%">Available</th>
+        <th style="width:10%">Strategy</th>
+        <th style="width:20%">Image</th>
+        <th style="width:7%">Age</th>
+      </tr></thead>
+      <tbody id="deps-body"></tbody>
+    </table></div>
+  </div>
+
+  <!-- services -->
+  <div class="section">
+    <div class="section-title">Services <span class="count" id="svc-count">0</span></div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th style="width:20%">Name</th>
+        <th style="width:12%">Type</th>
+        <th style="width:15%">Cluster IP</th>
+        <th style="width:25%">External IP</th>
+        <th style="width:16%">Ports</th>
+        <th style="width:7%">Age</th>
+      </tr></thead>
+      <tbody id="svcs-body"></tbody>
+    </table></div>
+  </div>
+
+  <!-- events -->
+  <div class="section">
+    <div class="section-title">Events <span class="count" id="evt-count">0</span></div>
+    <div class="events-wrap" id="events-body"></div>
+  </div>
+</div>
+
+<!-- logs modal -->
+<div class="modal-overlay" id="logs-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="logs-title">pod logs</h3>
+      <button class="modal-close" onclick="closeLogs()" aria-label="Close">&times;</button>
+    </div>
+    <pre id="logs-content">loading...</pre>
   </div>
 </div>
 
 <script>
-function statusClass(s){return s==='Running'?'running':s==='Pending'?'pending':s==='Failed'||s==='Error'?'failed':s==='Succeeded'?'succeeded':'pending'}
+const P={
+  el(id){return document.getElementById(id)},
+  esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML},
+  statusClass(s){return s==='Running'?'running':s==='Pending'?'pending':s==='Failed'||s==='Error'?'failed':s==='Succeeded'?'succeeded':'pending'},
+  rowClass(p){
+    if(p.status==='Failed'||p.status==='Error')return 'row-err';
+    if(p.status==='Pending'||p.restarts>0)return 'row-warn';
+    return 'row-ok';
+  },
+  depRowClass(d){return d.ready===d.desired?'row-ok':d.ready>0?'row-warn':'row-err'},
+};
+
 async function fetchOverview(){
   try{
-    const r=await fetch('/api/overview');const d=await r.json();
-    document.getElementById('ns').textContent=d.namespace;
-    document.getElementById('last-update').textContent=new Date().toLocaleTimeString();
-    document.getElementById('s-running').textContent=d.summary.running_pods;
-    document.getElementById('s-failed').textContent=d.summary.failed_pods;
-    document.getElementById('s-total').textContent=d.summary.total_pods;
-    document.getElementById('s-deps').textContent=d.summary.total_deployments;
-    document.getElementById('s-svcs').textContent=d.summary.total_services;
-    let podsHtml='';document.getElementById('pod-count').textContent=d.pods.length;
+    const r=await fetch('/api/overview');
+    if(!r.ok)return;
+    const d=await r.json();
+    const now=new Date();
+    P.el('ns').textContent=d.namespace;
+    P.el('last-update').textContent=now.toLocaleTimeString('en-GB');
+    P.el('s-running').textContent=d.summary.running_pods;
+    P.el('s-failed').textContent=d.summary.failed_pods;
+    P.el('s-total').textContent=d.summary.total_pods;
+    P.el('s-deps').textContent=d.summary.total_deployments;
+    P.el('s-svcs').textContent=d.summary.total_services;
+
+    // pods
+    let ph='';P.el('pod-count').textContent=d.pods.length;
     d.pods.forEach(p=>{
-      podsHtml+=`<tr>
-        <td><strong>${p.name}</strong></td>
-        <td><span class="status ${statusClass(p.status)}">${p.status}</span></td>
-        <td>${p.ready?'<span class="status-dot ok"></span> Yes':'<span class="status-dot err"></span> No'}</td>
-        <td>${p.restarts}</td>
-        <td style="color:var(--muted)">${p.node}</td>
-        <td style="color:var(--muted)">${p.ip}</td>
-        <td style="color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis">${p.image}</td>
-        <td style="color:var(--muted)">${p.age}</td>
-        <td><button class="btn" onclick="showLogs('${p.name}')">Logs</button></td>
+      ph+=`<tr class="${P.rowClass(p)}">
+        <td class="name">${P.esc(p.name)}</td>
+        <td><span class="chip ${P.statusClass(p.status)}">${p.status}</span></td>
+        <td><span class="chip ${p.ready?'ok':'no'}">${p.ready?'yes':'no'}</span></td>
+        <td class="num mono">${p.restarts}</td>
+        <td class="mono">${P.esc(p.node)}</td>
+        <td class="mono">${P.esc(p.ip)}</td>
+        <td class="image" title="${P.esc(p.image)}">${P.esc(p.image)}</td>
+        <td class="mono">${p.age}</td>
       </tr>`;
     });
-    document.getElementById('pods-body').innerHTML=podsHtml||'<tr><td colspan="9" class="empty">No pods found</td></tr>';
-    let depsHtml='';document.getElementById('dep-count').textContent=d.deployments.length;
+    P.el('pods-body').innerHTML=ph||'<tr><td colspan="8" class="empty">no pods running in this namespace</td></tr>';
+
+    // deployments
+    let dh='';P.el('dep-count').textContent=d.deployments.length;
     d.deployments.forEach(dep=>{
-      depsHtml+=`<tr>
-        <td><strong>${dep.name}</strong></td>
-        <td><span class="status ${dep.ready===dep.desired?'running':'pending'}">${dep.ready}/${dep.desired}</span></td>
-        <td>${dep.desired}</td><td>${dep.updated}</td><td>${dep.available}</td>
-        <td style="color:var(--muted)">${dep.strategy}</td>
-        <td style="color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis">${dep.image}</td>
-        <td style="color:var(--muted)">${dep.age}</td>
+      dh+=`<tr class="${P.depRowClass(dep)}">
+        <td class="name">${P.esc(dep.name)}</td>
+        <td><span class="chip ${dep.ready===dep.desired?'running':'pending'}">${dep.ready}/${dep.desired}</span></td>
+        <td class="num mono">${dep.desired}</td>
+        <td class="num mono">${dep.updated}</td>
+        <td class="num mono">${dep.available}</td>
+        <td class="mono">${P.esc(dep.strategy)}</td>
+        <td class="image" title="${P.esc(dep.image)}">${P.esc(dep.image)}</td>
+        <td class="mono">${dep.age}</td>
       </tr>`;
     });
-    document.getElementById('deps-body').innerHTML=depsHtml||'<tr><td colspan="8" class="empty">No deployments found</td></tr>';
-    let svcsHtml='';document.getElementById('svc-count').textContent=d.services.length;
+    P.el('deps-body').innerHTML=dh||'<tr><td colspan="8" class="empty">no deployments found</td></tr>';
+
+    // services
+    let sh='';P.el('svc-count').textContent=d.services.length;
     d.services.forEach(s=>{
-      svcsHtml+=`<tr>
-        <td><strong>${s.name}</strong></td>
-        <td><span class="status ${s.type==='LoadBalancer'?'running':'pending'}">${s.type}</span></td>
-        <td style="color:var(--muted)">${s.cluster_ip}</td>
-        <td style="color:var(--accent2)">${s.external_ip}</td>
-        <td style="color:var(--muted)">${s.ports}</td>
-        <td style="color:var(--muted)">${s.age}</td>
+      sh+=`<tr class="row-ok">
+        <td class="name">${P.esc(s.name)}</td>
+        <td><span class="chip ${s.type==='LoadBalancer'?'running':'pending'}">${s.type}</span></td>
+        <td class="mono">${P.esc(s.cluster_ip)}</td>
+        <td class="mono" style="color:var(--led-teal)">${P.esc(s.external_ip)}</td>
+        <td class="mono">${P.esc(s.ports)}</td>
+        <td class="mono">${s.age}</td>
       </tr>`;
     });
-    document.getElementById('svcs-body').innerHTML=svcsHtml||'<tr><td colspan="6" class="empty">No services found</td></tr>';
-    let evtsHtml='';document.getElementById('evt-count').textContent=d.events.length;
+    P.el('svcs-body').innerHTML=sh||'<tr><td colspan="6" class="empty">no services configured</td></tr>';
+
+    // events
+    let eh='';P.el('evt-count').textContent=d.events.length;
     d.events.forEach(e=>{
-      evtsHtml+=`<div class="event">
-        <span class="type ${e.type}">${e.type}</span>
-        <span class="reason">${e.reason}</span>
-        <span class="msg">${e.message}</span>
-        <span class="age">${e.age}</span>
+      eh+=`<div class="ev">
+        <span class="ev-type ${e.type}">${e.type}</span>
+        <span class="ev-reason">${P.esc(e.reason)}</span>
+        <span class="ev-msg" title="${P.esc(e.message)}">${P.esc(e.message)}</span>
+        <span class="ev-age">${e.age}</span>
       </div>`;
     });
-    document.getElementById('events-body').innerHTML=evtsHtml||'<div class="empty">No events</div>';
-  }catch(e){console.error('Fetch error:',e)}
+    P.el('events-body').innerHTML=eh||'<div class="empty">no recent events</div>';
+  }catch(e){console.error(e)}
 }
+
 async function showLogs(name){
-  document.getElementById('logs-modal').classList.add('open');
-  document.getElementById('logs-title').textContent='Logs: '+name;
-  document.getElementById('logs-content').textContent='Loading...';
-  const r=await fetch('/api/pods/'+name+'/logs');const d=await r.json();
-  document.getElementById('logs-content').textContent=d.logs||'No logs available';
+  P.el('logs-modal').classList.add('open');
+  P.el('logs-title').textContent=name;
+  P.el('logs-content').textContent='loading...';
+  try{
+    const r=await fetch('/api/pods/'+encodeURIComponent(name)+'/logs');
+    const d=await r.json();
+    P.el('logs-content').textContent=d.logs||'no logs available';
+  }catch(e){P.el('logs-content').textContent='failed to load logs'}
 }
-function closeLogs(){document.getElementById('logs-modal').classList.remove('open')}
-document.getElementById('logs-modal').addEventListener('click',function(e){if(e.target===this)closeLogs()});
-fetchOverview();setInterval(fetchOverview,10000);
+function closeLogs(){P.el('logs-modal').classList.remove('open')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLogs()});
+P.el('logs-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLogs()});
+
+fetchOverview();
+setInterval(fetchOverview,10000);
 </script>
 </body>
 </html>"""
