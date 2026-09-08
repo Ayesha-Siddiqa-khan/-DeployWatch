@@ -51,6 +51,8 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Deploy to EKS
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           kubectl set image deployment/deploywatch \
             deploywatch=$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} \
