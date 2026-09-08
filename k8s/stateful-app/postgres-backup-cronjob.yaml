@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: stateful-app
+spec:
+  schedule: "15 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-dump-to-s3
+              image: public.ecr.aws/aws-cli/aws-cli:2
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -euo pipefail
+                  apk add --no-cache postgresql16-client
+                  DATE_DIR="$(date +%F)"
+                  TIME_PART="$(date +%H-%M-%S)"
+                  BACKUP_FILE="/tmp/database-backup-$TIME_PART.sql"
+                  PGPASSWORD="$POSTGRES_PASSWORD" pg_dump -h postgres -U "$POSTGRES_USER" "$POSTGRES_DB" > "$BACKUP_FILE"
+                  aws s3 cp "$BACKUP_FILE" "s3://$S3_BACKUP_BUCKET/postgres-backups/$DATE_DIR/database-backup-$TIME_PART.sql"
+              env:
+                - name: POSTGRES_DB
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: POSTGRES_DB
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: POSTGRES_PASSWORD
+                - name: S3_BACKUP_BUCKET
+                  value: "REPLACE_WITH_TERRAFORM_OUTPUT_postgres_backup_bucket_name"
+                - name: AWS_REGION
+                  value: "REPLACE_WITH_AWS_REGION"

@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fastapi
+  namespace: stateful-app
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http01
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - deploywatch.example.com
+      secretName: fastapi-tls
+  rules:
+    - host: deploywatch.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fastapi
+                port:
+                  number: 80
