@@ -4,5 +4,6 @@
 tfplan
 *.exe
 *.bat
+kubeconfig
 !terraform/scripts/*.sh
 !terraform/scripts/*.md
