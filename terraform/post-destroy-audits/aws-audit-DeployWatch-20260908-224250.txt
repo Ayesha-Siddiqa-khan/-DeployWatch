@@ -1,0 +1,307 @@
+TerraPilot Post-Destroy AWS Audit
+Project: DeployWatch
+Region: us-east-1
+Region source: terraform.tfvars
+Environment: dev
+Environment source: terraform.tfvars
+ECR repository from config: deploywatch (terraform.tfvars)
+Timestamp: 20260908-224250
+
+[AWS identity]
+Command: aws sts get-caller-identity
+{
+    "UserId": "257536659737",
+    "Account": "257536659737",
+    "Arn": "arn:aws:iam::257536659737:root"
+}
+
+OK: AWS identity
+
+[EC2 active instances in region manual check]
+Command: aws ec2 describe-instances --filters Name=instance-state-name,Values=pending,running,stopping,stopped --query Reservations[].Instances[].{Id:InstanceId,State:State.Name,Type:InstanceType,PublicIp:PublicIpAddress,VpcId:VpcId} --output table --region us-east-1
+------------------------------------------------------------------------------------------
+|                                    DescribeInstances                                   |
++----------------------+----------------+----------+-----------+-------------------------+
+|          Id          |   PublicIp     |  State   |   Type    |          VpcId          |
++----------------------+----------------+----------+-----------+-------------------------+
+|  i-02c8111c68db862b9 |  44.204.229.75 |  running |  t3.small |  vpc-0357ce9354a441d76  |
+|  i-015bfd01fcedaf1e2 |  98.82.26.87   |  running |  t3.small |  vpc-0357ce9354a441d76  |
++----------------------+----------------+----------+-----------+-------------------------+
+
+OK: EC2 active instances in region manual check
+
+[EC2 instances tagged by TerraPilot]
+Command: aws ec2 describe-instances --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Reservations[].Instances[].{Id:InstanceId,State:State.Name,Type:InstanceType,PublicIp:PublicIpAddress} --output table --region us-east-1
+---------------------------------------------------------------------
+|                         DescribeInstances                         |
++----------------------+-----------+-------------+------------------+
+|          Id          | PublicIp  |    State    |      Type        |
++----------------------+-----------+-------------+------------------+
+|  i-0eb8b220aeea35d7f |  None     |  terminated |  t3.micro        |
+|  i-0e96e9488979d7777 |  None     |  terminated |  c7i-flex.large  |
++----------------------+-----------+-------------+------------------+
+
+OK: EC2 instances tagged by TerraPilot
+
+[Elastic IP allocations in region manual check]
+Command: aws ec2 describe-addresses --query Addresses[].{AllocationId:AllocationId,PublicIp:PublicIp,InstanceId:InstanceId,AssociationId:AssociationId} --output table --region us-east-1
+OK: Elastic IP allocations in region manual check
+
+[Elastic IP allocations tagged by TerraPilot]
+Command: aws ec2 describe-addresses --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Addresses[].{AllocationId:AllocationId,PublicIp:PublicIp,InstanceId:InstanceId,AssociationId:AssociationId} --output table --region us-east-1
+OK: Elastic IP allocations tagged by TerraPilot
+
+[NAT gateways active in region manual check]
+Command: aws ec2 describe-nat-gateways --filter Name=state,Values=pending,available --query NatGateways[].{Id:NatGatewayId,State:State,SubnetId:SubnetId,VpcId:VpcId} --output table --region us-east-1
+OK: NAT gateways active in region manual check
+
+[NAT gateways tagged by TerraPilot]
+Command: aws ec2 describe-nat-gateways --filter Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query NatGateways[].{Id:NatGatewayId,State:State,SubnetId:SubnetId,VpcId:VpcId} --output table --region us-east-1
+------------------------------------------
+|           DescribeNatGateways          |
++-----------+----------------------------+
+|  Id       |  nat-0e28a5ec2e0932c1f     |
+|  State    |  deleted                   |
+|  SubnetId |  subnet-02e29e63b3bc4dc81  |
+|  VpcId    |  vpc-0357ce9354a441d76     |
++-----------+----------------------------+
+
+OK: NAT gateways tagged by TerraPilot
+
+[Load balancers manual check]
+Command: aws elbv2 describe-load-balancers --query LoadBalancers[].{Name:LoadBalancerName,Arn:LoadBalancerArn,State:State.Code,Type:Type} --output table --region us-east-1
+OK: Load balancers manual check
+
+[EKS clusters manual check]
+Command: aws eks list-clusters --output table --region us-east-1
+---------------------------
+|      ListClusters       |
++-------------------------+
+||       clusters        ||
+|+-----------------------+|
+||  deploywatch-cluster  ||
+|+-----------------------+|
+
+OK: EKS clusters manual check
+
+[ECS clusters manual check]
+Command: aws ecs list-clusters --output table --region us-east-1
+--------------
+|ListClusters|
++------------+
+
+OK: ECS clusters manual check
+
+[Lambda functions manual check]
+Command: aws lambda list-functions --query Functions[].{Name:FunctionName,Runtime:Runtime,Modified:LastModified} --output table --region us-east-1
+OK: Lambda functions manual check
+
+[EBS volumes in-use or available manual check]
+Command: aws ec2 describe-volumes --filters Name=status,Values=available,in-use --query Volumes[].{Id:VolumeId,State:State,Size:Size,Attachments:Attachments[].InstanceId} --output table --region us-east-1
+---------------------------------------------
+|              DescribeVolumes              |
++------------------------+-------+----------+
+|           Id           | Size  |  State   |
++------------------------+-------+----------+
+|  vol-0a9f3c0fdb47ca742 |  20   |  in-use  |
++------------------------+-------+----------+
+||               Attachments               ||
+|+-----------------------------------------+|
+||  i-02c8111c68db862b9                    ||
+|+-----------------------------------------+|
+|              DescribeVolumes              |
++------------------------+-------+----------+
+|           Id           | Size  |  State   |
++------------------------+-------+----------+
+|  vol-02664edf367723567 |  20   |  in-use  |
++------------------------+-------+----------+
+||               Attachments               ||
+|+-----------------------------------------+|
+||  i-015bfd01fcedaf1e2                    ||
+|+-----------------------------------------+|
+
+OK: EBS volumes in-use or available manual check
+
+[EBS volumes tagged by TerraPilot]
+Command: aws ec2 describe-volumes --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Volumes[].{Id:VolumeId,State:State,Size:Size,Attachments:Attachments[].InstanceId} --output table --region us-east-1
+OK: EBS volumes tagged by TerraPilot
+
+[EBS snapshots tagged by TerraPilot]
+Command: aws ec2 describe-snapshots --owner-ids self --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Snapshots[].{Id:SnapshotId,State:State,Size:VolumeSize,Started:StartTime} --output table --region us-east-1
+OK: EBS snapshots tagged by TerraPilot
+
+[VPCs tagged by TerraPilot]
+Command: aws ec2 describe-vpcs --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Vpcs[].{Id:VpcId,State:State,Cidr:CidrBlock} --output table --region us-east-1
+-------------------------------------------------------
+|                    DescribeVpcs                     |
++--------------+-------------------------+------------+
+|     Cidr     |           Id            |   State    |
++--------------+-------------------------+------------+
+|  10.0.0.0/16 |  vpc-0357ce9354a441d76  |  available |
++--------------+-------------------------+------------+
+
+OK: VPCs tagged by TerraPilot
+
+[Subnets tagged by TerraPilot]
+Command: aws ec2 describe-subnets --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Subnets[].{Id:SubnetId,VpcId:VpcId,Cidr:CidrBlock,AZ:AvailabilityZone} --output table --region us-east-1
+------------------------------------------------------------------------------------
+|                                  DescribeSubnets                                 |
++------------+--------------+----------------------------+-------------------------+
+|     AZ     |    Cidr      |            Id              |          VpcId          |
++------------+--------------+----------------------------+-------------------------+
+|  us-east-1a|  10.0.1.0/24 |  subnet-02e29e63b3bc4dc81  |  vpc-0357ce9354a441d76  |
+|  us-east-1b|  10.0.2.0/24 |  subnet-0ca3be8a9e53dcb6f  |  vpc-0357ce9354a441d76  |
++------------+--------------+----------------------------+-------------------------+
+
+OK: Subnets tagged by TerraPilot
+
+[Route tables tagged by TerraPilot]
+Command: aws ec2 describe-route-tables --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query RouteTables[].{Id:RouteTableId,VpcId:VpcId,Routes:Routes[].GatewayId} --output table --region us-east-1
+OK: Route tables tagged by TerraPilot
+
+[Internet gateways tagged by TerraPilot]
+Command: aws ec2 describe-internet-gateways --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query InternetGateways[].{Id:InternetGatewayId,Attachments:Attachments[].VpcId} --output table --region us-east-1
+-----------------------------
+| DescribeInternetGateways  |
++---------------------------+
+|            Id             |
++---------------------------+
+|  igw-02a649dd6dfad1c29    |
++---------------------------+
+||       Attachments       ||
+|+-------------------------+|
+||  vpc-0357ce9354a441d76  ||
+|+-------------------------+|
+
+OK: Internet gateways tagged by TerraPilot
+
+[Security groups tagged by TerraPilot]
+Command: aws ec2 describe-security-groups --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query SecurityGroups[].{Id:GroupId,Name:GroupName,VpcId:VpcId} --output table --region us-east-1
+OK: Security groups tagged by TerraPilot
+
+[Network interfaces tagged by TerraPilot]
+Command: aws ec2 describe-network-interfaces --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query NetworkInterfaces[].{Id:NetworkInterfaceId,Status:Status,Attachment:Attachment.InstanceId,PrivateIp:PrivateIpAddress} --output table --region us-east-1
+OK: Network interfaces tagged by TerraPilot
+
+[VPC endpoints tagged by TerraPilot]
+Command: aws ec2 describe-vpc-endpoints --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query VpcEndpoints[].{Id:VpcEndpointId,State:State,Service:ServiceName,VpcId:VpcId} --output table --region us-east-1
+OK: VPC endpoints tagged by TerraPilot
+
+[RDS DB instances manual check]
+Command: aws rds describe-db-instances --query DBInstances[].{Id:DBInstanceIdentifier,Status:DBInstanceStatus,Class:DBInstanceClass,Engine:Engine} --output table --region us-east-1
+OK: RDS DB instances manual check
+
+[ECR repositories manual check]
+Command: aws ecr describe-repositories --query repositories[].{Name:repositoryName,Uri:repositoryUri,Created:createdAt} --output table --region us-east-1
+OK: ECR repositories manual check
+
+[S3 buckets account manual check]
+Command: aws s3api list-buckets --query Buckets[].{Name:Name,Created:CreationDate} --output table
+OK: S3 buckets account manual check
+
+[CloudFormation active stacks manual check]
+Command: aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE UPDATE_ROLLBACK_COMPLETE ROLLBACK_COMPLETE IMPORT_COMPLETE --query StackSummaries[].{Name:StackName,Status:StackStatus,Updated:LastUpdatedTime} --output table --region us-east-1
+OK: CloudFormation active stacks manual check
+
+[CloudWatch TerraPilot log groups]
+Command: aws logs describe-log-groups --log-group-name-prefix /terrapilot --query logGroups[].{Name:logGroupName,Retention:retentionInDays,StoredBytes:storedBytes} --output table --region us-east-1
+OK: CloudWatch TerraPilot log groups
+
+[SSM TerraPilot parameters]
+Command: aws ssm describe-parameters --parameter-filters Key=Name,Option=Contains,Values=/terrapilot/ --query Parameters[].{Name:Name,Type:Type,LastModified:LastModifiedDate} --output table --region us-east-1
+--------------------------------------------------------------------------------------------------------------------------------------
+|                                                         DescribeParameters                                                         |
++-----------------------------------+--------------------------------------------------------------------------------+---------------+
+|           LastModified            |                                     Name                                       |     Type      |
++-----------------------------------+--------------------------------------------------------------------------------+---------------+
+|  2026-09-07T22:47:22.768000+05:00 |  /terrapilot/Crochelia/dev/kubernetes/join-command/private                     |  SecureString |
+|  2026-08-28T16:53:33.169000+05:00 |  /terrapilot/HealthCheckr/dev/kubernetes/join-command/public                   |  SecureString |
+|  2026-08-18T23:34:32.829000+05:00 |  /terrapilot/cloudroute-lab/dev/kubernetes/join-command/private                |  SecureString |
+|  2026-06-03T14:41:19.899000+05:00 |  /terrapilot/infra-app/prod/kubernetes/join-command/public                     |  SecureString |
+|  2026-05-31T10:16:53.057000+05:00 |  /terrapilot/infra-cloud/prod/kubernetes/join-command/public                   |  SecureString |
+|  2026-06-06T22:41:29.617000+05:00 |  /terrapilot/infra-data/dev/kubernetes/join-command/private                    |  SecureString |
+|  2026-06-03T18:09:06.971000+05:00 |  /terrapilot/infra-edge/prod/kubernetes/join-command/private                   |  SecureString |
+|  2026-06-21T23:52:10.338000+05:00 |  /terrapilot/kubestate-recovery-lab-api/dev/kubernetes/join-command/public     |  SecureString |
+|  2026-05-29T03:32:00.382000+05:00 |  /terrapilot/smart-pipe-dev/prod/kubernetes/join-command/public                |  SecureString |
+|  2026-06-15T14:35:32.061000+05:00 |  /terrapilot/super-vault-dev/dev/kubernetes/join-command/private               |  SecureString |
+|  2026-06-15T00:25:48.187000+05:00 |  /terrapilot/calm-prod-dev/dev/kubernetes/join-command/private                 |  SecureString |
+|  2026-08-18T23:34:33.508000+05:00 |  /terrapilot/cloudroute-lab/dev/kubernetes/join-command/public                 |  SecureString |
+|  2026-06-12T23:16:53.226000+05:00 |  /terrapilot/fleet-stack/dev/kubernetes/join-command/private                   |  SecureString |
+|  2026-05-27T23:39:00.371000+05:00 |  /terrapilot/infra-api/prod/kubernetes/join-command/private                    |  SecureString |
+|  2026-06-16T20:52:35.392000+05:00 |  /terrapilot/infra-dev/dev/kubernetes/join-command/private                     |  SecureString |
+|  2026-06-03T16:50:06.268000+05:00 |  /terrapilot/infra-dev/prod/kubernetes/join-command/public                     |  SecureString |
+|  2026-06-03T17:43:58.048000+05:00 |  /terrapilot/infra-ops/prod/kubernetes/join-command/private                    |  SecureString |
+|  2026-06-21T23:52:09.613000+05:00 |  /terrapilot/kubestate-recovery-lab-api/dev/kubernetes/join-command/private    |  SecureString |
+|  2026-06-13T18:10:48.760000+05:00 |  /terrapilot/smart-ops-dev/dev/kubernetes/join-command/private                 |  SecureString |
+|  2026-06-13T18:10:49.530000+05:00 |  /terrapilot/smart-ops-dev/dev/kubernetes/join-command/public                  |  SecureString |
+|  2026-09-07T22:47:23.399000+05:00 |  /terrapilot/Crochelia/dev/kubernetes/join-command/public                      |  SecureString |
+|  2026-08-28T16:53:32.497000+05:00 |  /terrapilot/HealthCheckr/dev/kubernetes/join-command/private                  |  SecureString |
+|  2026-06-14T16:10:23.716000+05:00 |  /terrapilot/agile-sync-dev/dev/kubernetes/join-command/private                |  SecureString |
+|  2026-06-14T16:10:24.516000+05:00 |  /terrapilot/agile-sync-dev/dev/kubernetes/join-command/public                 |  SecureString |
+|  2026-06-03T14:41:18.717000+05:00 |  /terrapilot/infra-app/prod/kubernetes/join-command/private                    |  SecureString |
+|  2026-06-06T22:41:30.775000+05:00 |  /terrapilot/infra-data/dev/kubernetes/join-command/public                     |  SecureString |
+|  2026-06-03T18:09:08.186000+05:00 |  /terrapilot/infra-edge/prod/kubernetes/join-command/public                    |  SecureString |
+|  2026-06-03T17:43:59.238000+05:00 |  /terrapilot/infra-ops/prod/kubernetes/join-command/public                     |  SecureString |
+|  2026-06-21T14:54:27.029000+05:00 |  /terrapilot/progressive-delivery-fastapi/dev/kubernetes/join-command/public   |  SecureString |
+|  2026-06-02T20:23:51.738000+05:00 |  /terrapilot/smart-flow/prod/kubernetes/join-command/private                   |  SecureString |
+|  2026-06-15T00:25:48.949000+05:00 |  /terrapilot/calm-prod-dev/dev/kubernetes/join-command/public                  |  SecureString |
+|  2026-05-27T22:31:36.299000+05:00 |  /terrapilot/fleet-data/prod/kubernetes/join-command/private                   |  SecureString |
+|  2026-06-12T23:16:54.093000+05:00 |  /terrapilot/fleet-stack/dev/kubernetes/join-command/public                    |  SecureString |
+|  2026-05-27T23:39:01.717000+05:00 |  /terrapilot/infra-api/prod/kubernetes/join-command/public                     |  SecureString |
+|  2026-06-16T20:52:36.045000+05:00 |  /terrapilot/infra-dev/dev/kubernetes/join-command/public                      |  SecureString |
+|  2026-06-03T16:50:04.872000+05:00 |  /terrapilot/infra-dev/prod/kubernetes/join-command/private                    |  SecureString |
+|  2026-06-12T20:30:49.463000+05:00 |  /terrapilot/infra-ops/dev/kubernetes/join-command/public                      |  SecureString |
+|  2026-05-29T03:31:59.089000+05:00 |  /terrapilot/smart-pipe-dev/prod/kubernetes/join-command/private               |  SecureString |
+|  2026-06-27T20:46:27.532000+05:00 |  /terrapilot/statefullset/dev/kubernetes/join-command/public                   |  SecureString |
+|  2026-06-15T14:35:32.867000+05:00 |  /terrapilot/super-vault-dev/dev/kubernetes/join-command/public                |  SecureString |
+|  2026-05-31T10:16:51.888000+05:00 |  /terrapilot/infra-cloud/prod/kubernetes/join-command/private                  |  SecureString |
+|  2026-06-12T20:30:48.649000+05:00 |  /terrapilot/infra-ops/dev/kubernetes/join-command/private                     |  SecureString |
+|  2026-06-21T14:54:26.397000+05:00 |  /terrapilot/progressive-delivery-fastapi/dev/kubernetes/join-command/private  |  SecureString |
+|  2026-06-02T20:23:52.984000+05:00 |  /terrapilot/smart-flow/prod/kubernetes/join-command/public                    |  SecureString |
+|  2026-06-27T20:46:26.698000+05:00 |  /terrapilot/statefullset/dev/kubernetes/join-command/private                  |  SecureString |
++-----------------------------------+--------------------------------------------------------------------------------+---------------+
+
+OK: SSM TerraPilot parameters
+
+[IAM roles manual check]
+Command: aws iam list-roles --query Roles[].{Name:RoleName,Arn:Arn,Created:CreateDate} --output table
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|                                                                                             ListRoles                                                                                            |
++---------------------------------------------------------------------------------------------------------------------------+----------------------------+-----------------------------------------+
+|                                                            Arn                                                            |          Created           |                  Name                   |
++---------------------------------------------------------------------------------------------------------------------------+----------------------------+-----------------------------------------+
+|  arn:aws:iam::257536659737:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS                             |  2026-09-08T13:15:38+00:00 |  AWSServiceRoleForAmazonEKS             |
+|  arn:aws:iam::257536659737:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup          |  2026-09-08T15:10:02+00:00 |  AWSServiceRoleForAmazonEKSNodegroup    |
+|  arn:aws:iam::257536659737:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling                   |  2026-09-08T15:12:55+00:00 |  AWSServiceRoleForAutoScaling           |
+|  arn:aws:iam::257536659737:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing |  2026-08-28T11:36:28+00:00 |  AWSServiceRoleForElasticLoadBalancing  |
+|  arn:aws:iam::257536659737:role/aws-service-role/support.amazonaws.com/AWSServiceRoleForSupport                           |  2026-04-09T16:26:19+00:00 |  AWSServiceRoleForSupport               |
+|  arn:aws:iam::257536659737:role/aws-service-role/trustedadvisor.amazonaws.com/AWSServiceRoleForTrustedAdvisor             |  2026-04-09T16:26:19+00:00 |  AWSServiceRoleForTrustedAdvisor        |
+|  arn:aws:iam::257536659737:role/deploywatch-cluster-role                                                                  |  2026-09-08T13:14:48+00:00 |  deploywatch-cluster-role               |
+|  arn:aws:iam::257536659737:role/deploywatch-node-role                                                                     |  2026-09-08T15:09:00+00:00 |  deploywatch-node-role                  |
++---------------------------------------------------------------------------------------------------------------------------+----------------------------+-----------------------------------------+
+
+OK: IAM roles manual check
+
+[IAM instance profiles manual check]
+Command: aws iam list-instance-profiles --query InstanceProfiles[].{Name:InstanceProfileName,Arn:Arn,Created:CreateDate} --output table
+----------------------------------------------------------------------------------------------------
+|                                       ListInstanceProfiles                                       |
++---------+----------------------------------------------------------------------------------------+
+|  Arn    |  arn:aws:iam::257536659737:instance-profile/eks-b2d040c9-ef25-ec6b-2851-b0be2928528d   |
+|  Created|  2026-09-08T15:12:41+00:00                                                             |
+|  Name   |  eks-b2d040c9-ef25-ec6b-2851-b0be2928528d                                              |
++---------+----------------------------------------------------------------------------------------+
+
+OK: IAM instance profiles manual check
+
+[AWS Backup vaults manual check]
+Command: aws backup list-backup-vaults --query BackupVaultList[].{Name:BackupVaultName,RecoveryPoints:NumberOfRecoveryPoints} --output table --region us-east-1
+OK: AWS Backup vaults manual check
+
+
+COST RISK / MANUAL CHECK cleanup suggestions only - not executed:
+SUGGESTION ONLY: aws ec2 release-address --allocation-id <allocation-id> --region us-east-1
+SUGGESTION ONLY: aws ec2 delete-volume --volume-id <volume-id> --region us-east-1
+SUGGESTION ONLY: aws logs delete-log-group --log-group-name <log-group-name> --region us-east-1
+SUGGESTION ONLY: aws ecr delete-repository --repository-name <repository-name> --force --region us-east-1
+SUGGESTION ONLY: aws s3 rb s3://<bucket-name> --force

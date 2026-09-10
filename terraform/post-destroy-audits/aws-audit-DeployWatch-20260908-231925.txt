@@ -1,0 +1,81 @@
+TerraPilot Post-Destroy AWS Audit
+Project: DeployWatch
+Region: us-east-1
+Region source: terraform.tfvars
+Environment: dev
+Environment source: terraform.tfvars
+ECR repository from config: deploywatch (terraform.tfvars)
+Timestamp: 20260908-231925
+
+[AWS identity]
+Command: aws sts get-caller-identity
+{
+    "UserId": "257536659737",
+    "Account": "257536659737",
+    "Arn": "arn:aws:iam::257536659737:root"
+}
+
+OK: AWS identity
+
+[EC2 active instances in region manual check]
+Command: aws ec2 describe-instances --filters Name=instance-state-name,Values=pending,running,stopping,stopped --query Reservations[].Instances[].{Id:InstanceId,State:State.Name,Type:InstanceType,PublicIp:PublicIpAddress,VpcId:VpcId} --output table --region us-east-1
+OK: EC2 active instances in region manual check
+
+[EC2 instances tagged by TerraPilot]
+Command: aws ec2 describe-instances --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Reservations[].Instances[].{Id:InstanceId,State:State.Name,Type:InstanceType,PublicIp:PublicIpAddress} --output table --region us-east-1
+OK: EC2 instances tagged by TerraPilot
+
+[Elastic IP allocations in region manual check]
+Command: aws ec2 describe-addresses --query Addresses[].{AllocationId:AllocationId,PublicIp:PublicIp,InstanceId:InstanceId,AssociationId:AssociationId} --output table --region us-east-1
+OK: Elastic IP allocations in region manual check
+
+[Elastic IP allocations tagged by TerraPilot]
+Command: aws ec2 describe-addresses --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Addresses[].{AllocationId:AllocationId,PublicIp:PublicIp,InstanceId:InstanceId,AssociationId:AssociationId} --output table --region us-east-1
+OK: Elastic IP allocations tagged by TerraPilot
+
+[NAT gateways active in region manual check]
+Command: aws ec2 describe-nat-gateways --filter Name=state,Values=pending,available --query NatGateways[].{Id:NatGatewayId,State:State,SubnetId:SubnetId,VpcId:VpcId} --output table --region us-east-1
+OK: NAT gateways active in region manual check
+
+[NAT gateways tagged by TerraPilot]
+Command: aws ec2 describe-nat-gateways --filter Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query NatGateways[].{Id:NatGatewayId,State:State,SubnetId:SubnetId,VpcId:VpcId} --output table --region us-east-1
+OK: NAT gateways tagged by TerraPilot
+
+[Load balancers manual check]
+Command: aws elbv2 describe-load-balancers --query LoadBalancers[].{Name:LoadBalancerName,Arn:LoadBalancerArn,State:State.Code,Type:Type} --output table --region us-east-1
+OK: Load balancers manual check
+
+[EKS clusters manual check]
+Command: aws eks list-clusters --output table --region us-east-1
+--------------
+|ListClusters|
++------------+
+
+OK: EKS clusters manual check
+
+[ECS clusters manual check]
+Command: aws ecs list-clusters --output table --region us-east-1
+--------------
+|ListClusters|
++------------+
+
+OK: ECS clusters manual check
+
+[Lambda functions manual check]
+Command: aws lambda list-functions --query Functions[].{Name:FunctionName,Runtime:Runtime,Modified:LastModified} --output table --region us-east-1
+OK: Lambda functions manual check
+
+[EBS volumes in-use or available manual check]
+Command: aws ec2 describe-volumes --filters Name=status,Values=available,in-use --query Volumes[].{Id:VolumeId,State:State,Size:Size,Attachments:Attachments[].InstanceId} --output table --region us-east-1
+OK: EBS volumes in-use or available manual check
+
+[EBS volumes tagged by TerraPilot]
+Command: aws ec2 describe-volumes --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Volumes[].{Id:VolumeId,State:State,Size:Size,Attachments:Attachments[].InstanceId} --output table --region us-east-1
+OK: EBS volumes tagged by TerraPilot
+
+[EBS snapshots tagged by TerraPilot]
+Command: aws ec2 describe-snapshots --owner-ids self --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Snapshots[].{Id:SnapshotId,State:State,Size:VolumeSize,Started:StartTime} --output table --region us-east-1
+OK: EBS snapshots tagged by TerraPilot
+
+[VPCs tagged by TerraPilot]
+Command: aws ec2 describe-vpcs --filters Name=tag:ManagedBy,Values=TerraPilot Name=tag:Project,Values=DeployWatch --query Vpcs[].{Id:VpcId,State:State,Cidr:CidrBlock} --output table --region us-east-1
