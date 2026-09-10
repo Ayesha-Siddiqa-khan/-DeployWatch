@@ -586,7 +586,7 @@ resource "aws_iam_policy" "terrapilot_bootstrap_s3_access" {
           "s3:ListBucket",
           "s3:GetBucketLocation"
         ]
-        Resource = "arn:aws:s3:::${local.resource_prefix}-*"
+        Resource = "arn:aws:s3:::${lower(local.resource_prefix)}-*"
       },
       {
         Sid    = "AllowGetBootstrapObjects"
@@ -594,7 +594,7 @@ resource "aws_iam_policy" "terrapilot_bootstrap_s3_access" {
         Action = [
           "s3:GetObject"
         ]
-        Resource = "arn:aws:s3:::${local.resource_prefix}-*/scripts/*"
+        Resource = "arn:aws:s3:::${lower(local.resource_prefix)}-*/scripts/*"
       }
     ]
   })
