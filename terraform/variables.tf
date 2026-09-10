@@ -348,7 +348,7 @@ variable "ecr_lifecycle_policy_enabled" {
 variable "github_repository" {
   description = "GitHub repository allowed to assume the generated OIDC role, in OWNER/REPO format"
   type        = string
-  default     = "Ayesha-Siddiqa-khan/-DeployWatch"
+  default     = "Ayesha-Siddiqa-khan/DeployWatch"
 }
 
 variable "github_branch" {
