@@ -7,7 +7,6 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: deploywatch
-  EKS_CLUSTER: deploywatch-cluster
 
 jobs:
   test:
@@ -19,22 +18,20 @@ jobs:
           echo "Running tests..."
           # Add your test commands here
 
-  build-and-deploy:
+  build-and-push:
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::257536659737:role/DeployWatch-dev-github-actions-oidc
           aws-region: ${{ env.AWS_REGION }}
-
-      - name: Configure kubectl
-        run: |
-          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -49,12 +46,3 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-
-      - name: Deploy to EKS
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          kubectl set image deployment/deploywatch \
-            deploywatch=$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} \
-            --namespace=deploywatch
-          kubectl rollout status deployment/deploywatch --namespace=deploywatch
