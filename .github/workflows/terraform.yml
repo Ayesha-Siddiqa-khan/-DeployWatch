@@ -1,0 +1,50 @@
+name: Terraform
+
+on:
+  push:
+    branches: [main]
+    paths: ["terraform/**"]
+  pull_request:
+    branches: [main]
+    paths: ["terraform/**"]
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+defaults:
+  run:
+    working-directory: terraform
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/DeployWatch-dev-github-actions-oidc
+          aws-region: us-east-1
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.6"
+
+      - run: terraform init -input=false
+
+      - run: terraform validate
+
+      - run: terraform plan -input=false -out=tfplan
+        if: github.event_name == 'pull_request'
+
+      - run: terraform apply -auto-approve -input=false tfplan
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
+        with:
+          name: tfplan
+          path: terraform/tfplan
+          retention-days: 5
