@@ -366,7 +366,7 @@ variable "github_oidc_audience" {
 variable "github_oidc_thumbprint_list" {
   description = "GitHub Actions OIDC provider thumbprints"
   type        = list(string)
-  default     = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+  default     = ["ad7993cef59a5a60154a4a958bc03e88ce786ffd"]
 }
 
 variable "s3_bucket_name" {
